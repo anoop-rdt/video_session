@@ -77,7 +77,7 @@ COMPRESS_PRECOMPILERS = (
     ('text/x-scss', 'django_libsass.SassCompiler'),
 )
 
-APP_NAME = "App_Name"
+APP_NAME = "video_session"
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 

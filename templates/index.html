@@ -1,19 +1,352 @@
-<html ng-app="app">
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<base href="/"/>
-<title page-title></title>
-{% include 'layout/stylesheets.html' %}
-</head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+  <!-- <link rel="stylesheet" type="text/css" href="countdown/CSS/jquery.countdownTimer.css" /> -->
 
-<body ng-controller="LayoutCtrl as lc">
-<div id="wrapper_main">
-  <div id="header">
-    <div ng-include="'/static/apps/layout/html/header.layout.html'"></div>
-  </div>
-  <toaster-container></toaster-container>
-  <div ui-view="main" class="anim-in-out anim-fade" data-anim-speed="200"></div>
-</div>
-{% include 'layout/javascripts.html'%}
+  <style>
+    canvas {
+      border: 1px solid black;
+      position: absolute;
+      z-index: 2
+    }
+    .camera_p {
+      width: 250px;
+      height: 200px;
+      position: absolute;
+      z-index: 3
+    }
+    .people_s {
+      width: 1273px;
+      height: 683px;
+      position: absolute;
+      z-index: 1
+    }
+    .timer {
+      position: absolute;
+      z-index: 3;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-default">
+    <div class="container">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Brand</a>
+      </div>
+
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
+          <li> <a href="javascript:void(0)" onclick="send_data();">Run JavaScript Code</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <a href="javascript:void(0)" onclick="timer();">
+              <span class="glyphicon glyphicon-time" aria-hidden="true"></span></a>
+            </li>
+            <li>
+              <a href="javascript:void(0)" onclick="reset();"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
+            </li>
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <li><a href="/logout">logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
+
+    <div class="container-fluid" id="logic_div">
+
+      <div class="row timer">
+        <div class="col-lg-12">
+          <h1><time>00:00:00</time></h1>
+          <button id="start">start</button>
+          <button id="stop">stop</button>
+          <button id="clear">reset</button>
+        </div>
+        <div class="col-lg-3">
+          <div id="tensec">10sec</div>
+        </div>
+        <div class="col-lg-3">
+          <div id="twentysec">20sec</div>
+        </div>
+      </div>
+      <canvas id="myCanvas" width="1273" height="448"></canvas>
+      
+
+      {% if request.user.is_staff %}
+        <div class="camera_p" id="camera"></div>
+        <div class="people_s" id="people"></div>
+      {% else %}
+        <div class="people_s" id="camera"></div>
+        <div class="camera_p" id="people"></div>
+      {% endif %}
+
+    </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="https://static.opentok.com/v2.4/js/opentok.min.js"></script>
+    <script type="text/javascript" src="{% static "countdown/jquery.countdownTimer.js" %}"></script>
+
+    <script>
+      $(function() {
+        {% if request.user.is_staff %}
+          $( "#camera" ).draggable({containment: 'window'});
+          $( "#camera" ).resizable({animateEasing: "easeOutBounce"});
+        {% else %}
+          $( "#people" ).draggable({containment: 'window'});
+          $( "#people" ).resizable({animateEasing: "easeOutBounce"});
+        {% endif %}
+      });
+    </script>
+    <script>
+      $(function(){
+        var twenty = document.getElementById('twentysec');
+        var tensec = document.getElementById('tensec');
+        tensec.onclick = function () {
+        $("#tensec").countdowntimer({
+          seconds:10,
+          size:"lg"
+        });
+        }
+        twenty.onclick = function () {
+          $("#twentysec").countdowntimer({
+            seconds:20,
+            size:"lg"
+          });
+        }
+      });
+    </script>
+    <script>
+      var h1 = document.getElementsByTagName('h1')[0],
+      start = document.getElementById('start'),
+      stop = document.getElementById('stop'),
+      clear = document.getElementById('clear'),
+      seconds = 0, minutes = 0, hours = 0,
+      t;
+
+      function add() {
+        seconds++;
+        if (seconds >= 60) {
+          seconds = 0;
+          minutes++;
+          if (minutes >= 60) {
+            minutes = 0;
+            hours++;
+          }
+        }
+
+        h1.textContent = (hours ? (hours > 9 ? hours : "0" + hours) : "00") + ":" + (minutes ? (minutes > 9 ? minutes : "0" + minutes) : "00") + ":" + (seconds > 9 ? seconds : "0" + seconds);
+
+        timer();
+      }
+      function timer() {
+        t = setTimeout(add, 1000);
+      }
+      timer();
+
+
+      /* Start button */
+      start.onclick = timer;
+
+      /* Stop button */
+      stop.onclick = function() {
+        clearTimeout(t);
+      }
+
+      /* Clear button */
+      clear.onclick = function() {
+        h1.textContent = "00:00:00";
+        seconds = 0; minutes = 0; hours = 0;
+      }
+    </script>
+    <script type="text/javascript">
+
+  // Go to https://dashboard.tokbox.com/ to find your OpenTok
+  // API key and generate a test session ID and token:
+  var apiKey    = "45472022";
+  var sessionId = "2_MX40NTQ3MjAyMn5-MTQ1NDQ4MTU0OTU0MH44a1NNN1VuTjdOclhNTXlGMkhBLys4WEJ-UH4";
+  var token     = "T1==cGFydG5lcl9pZD00NTQ3MjAyMiZzaWc9NWIxY2ZlNTFmZWRhYjJlYjcyODNhMjYwNGQwMmMwNTBlMGFjNzhhNTpyb2xlPXB1Ymxpc2hlciZzZXNzaW9uX2lkPTJfTVg0ME5UUTNNakF5TW41LU1UUTFORFE0TVRVME9UVTBNSDQ0YTFOTk4xVnVUamRPY2xoTlRYbEdNa2hCTHlzNFdFSi1VSDQmY3JlYXRlX3RpbWU9MTQ1NDQ4MTU5OSZub25jZT0wLjY5MDE0MTQ3NzYxMDQ0ODQmZXhwaXJlX3RpbWU9MTQ1NzA3MzU0MyZjb25uZWN0aW9uX2RhdGE9";
+  
+  //Initializing session
+  var session = OT.initSession(apiKey, sessionId);
+  var sub_mirror;
+  var pub_mirror;
+
+  {% if request.user.is_staff %}
+    sub_mirror = false;
+    pub_mirror = true;
+  {% else %}
+    sub_mirror = true;
+    pub_mirror = false;
+  {% endif %}
+
+  session.connect(token, function(error) {
+    // publisher screen height and width sections
+    var publisherOptions = {
+      insertMode: 'append',
+      width: '100%',
+      height: '100%',
+      mirror:pub_mirror
+    };
+    //initializing publisher div
+    var publisher = OT.initPublisher('camera', publisherOptions);
+    session.publish(publisher, function() {
+    });
+  });
+  
+  //accepting streams and establishing connection 
+  session.on('streamCreated', function(event) {
+      // setting height and width for the subscriber window
+      var peopleOptions = {insertMode: 'append',
+        width: '100%',
+        height: '100%',
+        mirror:sub_mirror
+      };
+        session.subscribe(event.stream, 'people', peopleOptions);
+  });
+
+  //sending pixel data to subscriber  
+  session.on("signal:pixels", function(event) {
+    //for connection id
+    //console.log('connectionid', event.from.id);
+    context.lineWidth = 5;
+    context.lineJoin = 'round';
+    context.lineCap = 'round';
+    context.strokeStyle = '#0C9DBF'
+
+    var data = event.data;
+    for (var i=0; i < data.length; i++){
+      context.globalCompositeOperation = "source-over";
+      context.beginPath();
+      context.moveTo(data[i].last_mouse.x, data[i].last_mouse.y);
+      context.lineTo(data[i].mouse.x, data[i].mouse.y);
+      context.stroke();
+      context.closePath();
+    }
+  });
+</script>
+<script>
+  var canvas = document.getElementById('myCanvas');
+  var context = canvas.getContext('2d');
+
+  context.lineWidth = 5;
+  context.lineJoin = 'round';
+  context.lineCap = 'round';
+  context.strokeStyle = '#ff0000'
+
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();  
+    //Initializes the mouse cordinates to track
+    var mouse = {x: 0, y: 0};
+    var last_mouse = {x: 0, y: 0};
+    
+    //for storing a single (x,y) cordinate pair
+
+    /* Mouse Capturing Work */
+    canvas.addEventListener('mousemove', function(e) {
+      last_mouse.x = mouse.x;
+      last_mouse.y = mouse.y;
+      
+      mouse.x = e.pageX - this.offsetLeft;
+      mouse.y = e.pageY - this.offsetTop;
+    }, false)
+    // Tracking the mouse pointer when moving
+    canvas.addEventListener('mousedown', function(){
+      canvas.addEventListener('mousemove', onPaint, false);
+    }, false);
+
+    //untrack the mouse pionter 
+    canvas.addEventListener('mouseup', function(){
+      canvas.removeEventListener('mousemove', onPaint, false); 
+    }, false);
+
+    var onPaint = function() {
+      context.beginPath();
+      context.moveTo(last_mouse.x, last_mouse.y);
+      context.lineTo(mouse.x, mouse.y);
+      context.stroke();
+      context.closePath();
+      send_data([{'mouse':mouse, 'last_mouse': last_mouse}]); 
+    };
+
+    //reset the camvas 
+    function reset() {
+      // context.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Store the current transformation matrix
+      context.save();
+      // Use the identity matrix while clearing the canvas
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      // Restore the transform
+      context.restore();
+    }
+
+    //send signal to all clients connect to the session
+    function send_data(full_data){
+      // We send data in small chunks so that they fit in a signal
+      // Each packet is maximum ~250 chars, we can fit 8192/250 ~= 32 updates per signal
+
+      var dummy_data = full_data.slice();
+      while(dummy_data.length) {
+        var chunk_data = dummy_data.splice(0, Math.min(dummy_data.length, 32));
+        send_signal('pixels', chunk_data);
+      }
+    }
+  // resize the canvas to fill browser window dynamically
+  //window.addEventListener('resize', resizeCanvas, false);
+
+  
+  // Sending the signal and the points 
+  function send_signal(type, data){
+
+    session.signal(
+    {
+      data: data,
+      type: type
+    }, signalcallback);
+  }
+
+  // signal callback 
+  var signalcallback = function(error) {
+    if (error) {
+      console.log("signal error ("
+       + error.code
+       + "): " + error.message);
+    } else {
+        /*console.log("signal sent.");
+        line_data = [];*/
+      }
+    };
+  </script>
 </body>
 </html>
-
