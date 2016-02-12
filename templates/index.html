@@ -50,15 +50,7 @@
 
       <!-- Collect the nav links, forms, and other content for toggling -->
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-        <ul class="nav navbar-nav">
-          <li class="active"><a href="#">Link <span class="sr-only">(current)</span></a></li>
-          <li> <a href="javascript:void(0)" onclick="send_data();">Run JavaScript Code</a></li>
-        </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li>
-            <a href="javascript:void(0)" onclick="timer();">
-              <span class="glyphicon glyphicon-time" aria-hidden="true"></span></a>
-            </li>
             <li>
               <a href="javascript:void(0)" onclick="reset();"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></a>
             </li>
@@ -75,13 +67,21 @@
 
 
     <div class="container-fluid" id="logic_div">
-
+      <div class="progress">
+        <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 1%">
+      </div>
+    </div>
       <div class="row timer">
         <div class="col-lg-12">
-          <h1><time>00:00:00</time></h1>
-          <button id="start">start</button>
-          <button id="stop">stop</button>
-          <button id="clear">reset</button>
+          <div id="demo2" class="demo" style="font-size: 30px;"><strong><p class="lead">00:00:00</p></strong></div>
+        <div class="row">
+        <div class="col-lg-2">
+          <a href="#" class="btn btn-info" role="button" id="start">start</a>
+        </div>
+        <div class="col-lg-2">
+          <a href="#" class="btn btn-danger" role="button" style="margin-left:30px" id="stop">reset</a>
+        </div>
+        </div>
         </div>
         <div class="col-lg-3">
           <div id="tensec">10sec</div>
@@ -111,7 +111,7 @@
     <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
     <script src="https://static.opentok.com/v2.4/js/opentok.min.js"></script>
     <script type="text/javascript" src="{% static "countdown/jquery.countdownTimer.js" %}"></script>
-
+    <script type="text/javascript" src="{% static "stopwatch/jquery.stopwatch.js" %}"></script>
     <script>
       $(function() {
         {% if request.user.is_staff %}
@@ -121,6 +121,31 @@
           $( "#people" ).draggable({containment: 'window'});
           $( "#people" ).resizable({animateEasing: "easeOutBounce"});
         {% endif %}
+        var stopwatch_start = document.getElementById('start');
+        var stopwatch_stop = document.getElementById('stop');
+        stopwatch_start.onclick = function () {
+            $('#demo2').stopwatch().stopwatch('toggle');
+            if (this.text =='start'){
+              this.text ='pause';
+            }
+            else {
+              this.text = 'start'
+            }  
+        }
+        stopwatch_stop.onclick = function () {
+          $('#demo2').stopwatch().stopwatch('reset');
+        }
+        //settimeout function for increaing progress bar
+        var progress_bar_time = 0;
+        setInterval(function(){
+          console.log('hello world');
+          if (progress_bar_time < 100 ) {
+            progress_bar_time = progress_bar_time + 1
+            $('.progress-bar').css('width', progress_bar_time.toString()+'%');
+            
+          }
+        }, 10000);
+
       });
     </script>
     <script>
@@ -140,49 +165,6 @@
           });
         }
       });
-    </script>
-    <script>
-      var h1 = document.getElementsByTagName('h1')[0],
-      start = document.getElementById('start'),
-      stop = document.getElementById('stop'),
-      clear = document.getElementById('clear'),
-      seconds = 0, minutes = 0, hours = 0,
-      t;
-
-      function add() {
-        seconds++;
-        if (seconds >= 60) {
-          seconds = 0;
-          minutes++;
-          if (minutes >= 60) {
-            minutes = 0;
-            hours++;
-          }
-        }
-
-        h1.textContent = (hours ? (hours > 9 ? hours : "0" + hours) : "00") + ":" + (minutes ? (minutes > 9 ? minutes : "0" + minutes) : "00") + ":" + (seconds > 9 ? seconds : "0" + seconds);
-
-        timer();
-      }
-      function timer() {
-        t = setTimeout(add, 1000);
-      }
-      timer();
-
-
-      /* Start button */
-      start.onclick = timer;
-
-      /* Stop button */
-      stop.onclick = function() {
-        clearTimeout(t);
-      }
-
-      /* Clear button */
-      clear.onclick = function() {
-        h1.textContent = "00:00:00";
-        seconds = 0; minutes = 0; hours = 0;
-      }
     </script>
     <script type="text/javascript">
 
