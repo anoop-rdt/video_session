@@ -212,6 +212,10 @@
         session.subscribe(event.stream, 'people', peopleOptions);
   });
 
+  session.on('signal:reset', function (event){
+      clear_canvas();
+  });
+
   //sending pixel data to subscriber  
   session.on("signal:pixels", function(event) {
     //for connection id
@@ -282,6 +286,10 @@
 
     //reset the camvas 
     function reset() {
+      clear_canvas()
+      send_signal('reset', true);
+    }
+    function clear_canvas() {
       // context.clearRect(0, 0, canvas.width, canvas.height);
       
       // Store the current transformation matrix
@@ -292,7 +300,6 @@
       // Restore the transform
       context.restore();
     }
-
     //send signal to all clients connect to the session
     function send_data(full_data){
       // We send data in small chunks so that they fit in a signal
