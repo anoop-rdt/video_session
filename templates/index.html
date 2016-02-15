@@ -30,6 +30,7 @@
     .timer {
       position: absolute;
       z-index: 3;
+      margin-left: 1075px;
     }
   </style>
 </head>
@@ -71,23 +72,32 @@
         <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 1%">
       </div>
     </div>
-      <div class="row timer">
-        <div class="col-lg-12">
-          <div id="demo2" class="demo" style="font-size: 30px;"><strong><p class="lead">00:00:00</p></strong></div>
+      <div class="row timer well">
         <div class="row">
-        <div class="col-lg-2">
+        <div class="col-lg-6">
+          <div id="demo2" class="demo lead"><strong><p class="lead">00:00:00</p></strong>
+          </div>
+        </div>  
+        </div>
+        <div class="row">
+        <div class="col-lg-6">
+          <div>
           <a href="#" class="btn btn-info" role="button" id="start">start</a>
+          </div>
         </div>
-        <div class="col-lg-2">
-          <a href="#" class="btn btn-danger" role="button" style="margin-left:30px" id="stop">reset</a>
+        <div class="col-lg-6">
+          <div>
+          <a href="#" class="btn btn-danger" role="button"  id="stop">reset</a>
+          </div>
         </div>
         </div>
+        <div class="row">
+        <div class="col-lg-6">
+          <div id="tensec" class="lead">10sec</div>
         </div>
-        <div class="col-lg-3">
-          <div id="tensec">10sec</div>
+        <div class="col-lg-6">
+          <div id="twentysec" class="lead">20sec</div>
         </div>
-        <div class="col-lg-3">
-          <div id="twentysec">20sec</div>
         </div>
       </div>
       <canvas id="myCanvas" width="1273" height="448"></canvas>
@@ -155,14 +165,22 @@
         tensec.onclick = function () {
         $("#tensec").countdowntimer({
           seconds:10,
-          size:"lg"
+          size:"lg",
+          timeUp: times_up
         });
         }
         twenty.onclick = function () {
           $("#twentysec").countdowntimer({
             seconds:20,
-            size:"lg"
+            size:"lg",
+            timeUp: twenty_times_up
           });
+        }
+        function times_up() {
+          $('#tensec').text('10sec');
+        }
+        function twenty_times_up(){
+          $('#twentysec').text('20sec');
         }
       });
     </script>
